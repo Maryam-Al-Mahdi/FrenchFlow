@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: frenchflow
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HF_API_KEY
+        sync: false
