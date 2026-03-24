@@ -1,15 +1,6 @@
-const CACHE_NAME = 'frenchflow-v1';
-const PRECACHE = [
-  '/',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/french-verbs.js',
-  '/js/french-verb-list.js',
-  '/favicon.svg'
-];
+const CACHE_NAME = 'frenchflow-v2';
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(PRECACHE)));
   self.skipWaiting();
 });
 
@@ -23,12 +14,17 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for API calls, cache-first for static assets
-  if (e.request.url.includes('/api/')) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-  } else {
-    e.respondWith(
-      caches.match(e.request).then(cached => cached || fetch(e.request))
-    );
-  }
+  // Network-first for everything — use cache only when offline
+  e.respondWith(
+    fetch(e.request)
+      .then(response => {
+        // Cache a copy for offline use
+        if (response.ok && e.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(e.request))
+  );
 });
