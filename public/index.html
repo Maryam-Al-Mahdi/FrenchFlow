@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FrenchFlow - Interactive French Learning</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#E08A8A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FrenchFlow">
+  <link rel="apple-touch-icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+  <!-- ─── Header ──────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">French<span>Flow</span></div>
+    <div class="nav-buttons">
+      <button class="nav-btn active" data-view="learn">Learn</button>
+      <button class="nav-btn" data-view="vocab" id="open-vocab-btn">
+        Vocabulary <span id="vocab-count-badge"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── Main Container ──────────────────────────────────────────────── -->
+  <div class="main-container">
+
+    <!-- ─── Hero Section ─────────────────────────────────────────────── -->
+    <section class="hero" id="hero-section">
+      <div class="hero-content">
+        <img src="https://stories.freepiklabs.com/storage/13714/Learning-languages-01.svg"
+             alt="Language learning illustration" class="hero-illustration" loading="eager">
+        <div class="hero-text">
+          <h1>Learn French interactively</h1>
+          <p>Paste a YouTube link, upload a book page, drop a video, or type French text. Click any word to translate it, hear the pronunciation, and build your vocabulary.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Input Section ─────────────────────────────────────────────── -->
+    <section class="input-section" id="input-section">
+      <div class="input-tabs">
+        <button class="input-tab active" data-tab="youtube">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+          YouTube
+        </button>
+        <button class="input-tab" data-tab="instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Instagram
+        </button>
+        <button class="input-tab" data-tab="image">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Image
+        </button>
+        <button class="input-tab" data-tab="video">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          Video/Audio
+        </button>
+        <button class="input-tab" data-tab="text">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Paste Text
+        </button>
+      </div>
+
+      <!-- Transcription Quality (shown for YouTube & Video tabs) -->
+      <div class="whisper-quality" id="whisper-quality">
+        <label for="whisper-model">Transcription:</label>
+        <select id="whisper-model">
+          <option value="cloud" selected>Cloud - HuggingFace (fast + accurate)</option>
+          <option value="tiny">Local - Fast (lower accuracy)</option>
+          <option value="base">Local - Balanced</option>
+          <option value="small">Local - Accurate (slow)</option>
+          <option value="medium">Local - Best (very slow)</option>
+        </select>
+        <span class="hint">Only used when subtitles aren't available</span>
+      </div>
+      <div class="whisper-quality" id="video-ocr-option" style="display:none;">
+        <label>
+          <input type="checkbox" id="use-video-ocr">
+          OCR burned-in subtitles (for videos with visible text overlays)
+        </label>
+        <span class="hint">Extracts text from the video frames using OCR — use when audio transcription fails</span>
+      </div>
+
+      <!-- YouTube Panel -->
+      <div class="input-panel active" id="panel-youtube">
+        <div class="input-row">
+          <input type="text" class="input-field" id="youtube-url"
+                 placeholder="Paste a YouTube URL (e.g., https://youtube.com/watch?v=...)">
+          <button class="btn" id="youtube-submit">Process</button>
+        </div>
+      </div>
+
+      <!-- Instagram Panel -->
+      <div class="input-panel" id="panel-instagram">
+        <div class="input-row" style="margin-bottom: 0.75rem;">
+          <input type="text" class="input-field" id="instagram-url"
+                 placeholder="Paste an Instagram Reel URL">
+          <button class="btn" id="instagram-submit">Process</button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.8rem;">
+          Note: Instagram may block direct access. If this doesn't work, download the reel and upload it via the Video/Audio tab.
+        </p>
+      </div>
+
+      <!-- Image Panel -->
+      <div class="input-panel" id="panel-image">
+        <div class="upload-zone" id="image-drop-zone">
+          <img src="https://stories.freepiklabs.com/storage/57032/Reading-book-01.svg"
+               alt="Reading" class="upload-illustration" loading="lazy">
+          <p>Drop an image here or click to upload</p>
+          <p class="hint">Supports PNG, JPG, GIF, WebP - e.g., a page from a French book</p>
+          <input type="file" id="image-input" accept="image/*" hidden>
+        </div>
+      </div>
+
+      <!-- Video/Audio Panel -->
+      <div class="input-panel" id="panel-video">
+        <div class="upload-zone" id="video-drop-zone">
+          <img src="https://stories.freepiklabs.com/storage/17319/Media-player-01.svg"
+               alt="Media player" class="upload-illustration" loading="lazy">
+          <p>Drop a video or audio file here or click to upload</p>
+          <p class="hint">Supports MP4, WebM, MKV, MOV, MP3, WAV, OGG, M4A (max 200MB)</p>
+          <input type="file" id="video-input" accept="video/*,audio/*" hidden>
+        </div>
+      </div>
+
+      <!-- Text Panel -->
+      <div class="input-panel" id="panel-text">
+        <textarea class="input-field" id="text-input" style="min-height: 300px; width: 100%;"
+                  placeholder="Paste or type French text here..."></textarea>
+        <div style="margin-top: 0.75rem; text-align: right;">
+          <button class="btn" id="text-submit">Process Text</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Error Box ─────────────────────────────────────────────────── -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- ─── Processing Indicator ──────────────────────────────────────── -->
+    <div class="processing" id="processing">
+      <div class="progress-card">
+        <img src="https://stories.freepiklabs.com/storage/2435/Upload-01.svg"
+             alt="Processing" class="progress-illustration" loading="lazy">
+        <div class="progress-steps" id="progress-steps">
+          <div class="progress-step" data-step="subtitles">
+            <div class="step-icon" id="step-icon-0">1</div>
+            <span class="step-label" id="step-label-0">Checking subtitles</span>
+          </div>
+          <div class="progress-step" data-step="downloading">
+            <div class="step-icon" id="step-icon-1">2</div>
+            <span class="step-label" id="step-label-1">Downloading</span>
+          </div>
+          <div class="progress-step" data-step="transcribing">
+            <div class="step-icon" id="step-icon-2">3</div>
+            <span class="step-label" id="step-label-2">Transcribing</span>
+          </div>
+        </div>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar" id="progress-bar">
+            <div class="progress-bar-fill" id="progress-bar-fill"></div>
+          </div>
+          <span class="progress-pct" id="progress-pct">0%</span>
+        </div>
+        <p class="progress-message" id="processing-text">Starting...</p>
+        <div class="progress-elapsed" id="progress-elapsed"></div>
+      </div>
+    </div>
+
+    <!-- ─── Content Section ───────────────────────────────────────────── -->
+    <section class="content-section" id="content-section">
+
+      <!-- Audio Controls -->
+      <div class="audio-controls">
+        <button class="btn btn-sm" id="play-all-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Play All
+        </button>
+        <button class="btn btn-sm btn-outline" id="pause-btn" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          Pause
+        </button>
+        <button class="btn btn-sm btn-outline" id="stop-btn" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+          Stop
+        </button>
+        <div class="speed-control">
+          <label for="speech-speed">Speed:</label>
+          <select id="speech-speed">
+            <option value="0.5">0.5x</option>
+            <option value="0.7">0.7x</option>
+            <option value="0.85">0.85x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sentence Translation Bar -->
+      <div class="sentence-bar" id="sentence-bar">
+        <span class="sentence-text" id="sentence-translation"></span>
+        <button class="btn btn-sm btn-outline" id="close-sentence-bar">Dismiss</button>
+      </div>
+
+      <!-- French Text Display -->
+      <div class="french-text-container" id="french-text"></div>
+
+      <!-- New Input Button -->
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <button class="btn btn-outline" id="new-input-btn">Process New Content</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ─── Word Popover ────────────────────────────────────────────────── -->
+  <div class="word-popover" id="word-popover">
+    <div class="popover-header">
+      <span class="popover-word" id="popover-word"></span>
+      <button class="popover-close" id="popover-close">&times;</button>
+    </div>
+    <div class="popover-translation" id="popover-translation">Loading...</div>
+    <div class="popover-alternatives" id="popover-alternatives"></div>
+    <button class="popover-listen-btn" id="popover-listen">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:middle; margin-right:4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      Listen to pronunciation
+    </button>
+
+    <div class="verb-info" id="verb-info">
+      <h4>Verb Information</h4>
+      <div class="verb-info-row">
+        <span class="label">Infinitive:</span>
+        <span class="value" id="verb-infinitive"></span>
+      </div>
+      <div class="verb-info-row">
+        <span class="label">Meaning:</span>
+        <span class="value" id="verb-meaning"></span>
+      </div>
+      <div class="verb-info-row">
+        <span class="label">Tense:</span>
+        <span class="value" id="verb-tense"></span>
+      </div>
+      <div class="verb-info-row">
+        <span class="label">Person:</span>
+        <span class="value" id="verb-person"></span>
+      </div>
+      <div class="tense-explanation" id="tense-explanation"></div>
+    </div>
+
+    <div class="popover-actions">
+      <button class="btn btn-sm btn-success" id="save-vocab-btn">+ Vocabulary</button>
+      <button class="btn btn-sm" id="save-verb-btn" style="display:none;">Save Verb Info</button>
+    </div>
+  </div>
+
+  <!-- ─── Vocabulary Panel ────────────────────────────────────────────── -->
+  <div class="vocab-overlay" id="vocab-overlay"></div>
+  <div class="vocab-panel" id="vocab-panel">
+    <div class="vocab-header">
+      <h2>My Vocabulary</h2>
+      <button class="popover-close" id="close-vocab">&times;</button>
+    </div>
+    <div class="vocab-search">
+      <input type="text" placeholder="Search vocabulary..." id="vocab-search-input">
+    </div>
+    <div class="vocab-stats" id="vocab-stats"></div>
+    <div class="vocab-list" id="vocab-list"></div>
+  </div>
+
+  <!-- ─── Toast Container ─────────────────────────────────────────────── -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ─── Attribution ───────────────────────────────────────────────── -->
+  <footer class="attribution">
+    Illustrations by <a href="https://storyset.com/" target="_blank" rel="noopener">Storyset</a>
+  </footer>
+
+  <script src="/js/french-verb-list.js"></script>
+  <script src="/js/french-verbs.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+node_modules/
+uploads/
+*.wav
+*.mp3
+*.tmp
+.env
+Error/
+.claude/
+FrenchFlow_Deployment_Guide.pdf
+Color Hunt Palette*
+generate_guide.py
