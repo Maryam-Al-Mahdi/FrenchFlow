@@ -209,12 +209,14 @@ body.popover-open .main-container {
 .whisper-quality {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0.6rem 0.8rem;
   background: var(--bg-primary);
   border-radius: 8px;
   font-size: 0.8rem;
+  overflow: hidden;
 }
 
 .whisper-quality label {
@@ -230,11 +232,14 @@ body.popover-open .main-container {
   border-radius: 6px;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .whisper-quality .hint {
   color: var(--text-muted);
   font-size: 0.75rem;
+  width: 100%;
 }
 
 .input-row {
@@ -1055,7 +1060,10 @@ textarea.input-field {
   .upload-zone { padding: 1.5rem 1rem; }
   .upload-illustration { width: 100px; height: 100px; }
   .upload-zone p { font-size: 0.82rem; }
-  .whisper-quality { flex-wrap: wrap; }
+  .whisper-quality { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .whisper-quality select { width: 100%; font-size: 0.78rem; }
+  .whisper-quality label { font-size: 0.78rem; }
+  .whisper-quality .hint { font-size: 0.7rem; }
   .audio-controls { flex-direction: column; align-items: stretch; padding: 0.75rem; gap: 0.5rem; }
   .audio-controls .btn { justify-content: center; }
   .speed-control { margin-left: 0; justify-content: center; }
