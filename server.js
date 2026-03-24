@@ -728,7 +728,7 @@ async function transcribeWithHuggingFace(jobId, audioPath, pMin, pMax) {
 
   async function doRequest() {
     return fetch(
-      'https://api-inference.huggingface.co/models/openai/whisper-large-v3',
+      'https://router.huggingface.co/hf-inference/models/openai/whisper-large-v3',
       {
         method: 'POST',
         headers: {
